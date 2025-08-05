@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云需求顾问 - 智能云服务配置助手</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部区域 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-cloud"></i>
+                    <h1>云需求顾问</h1>
+                </div>
+                <p class="subtitle">智能的云服务配置助手系统，集成大模型能力，支持自然语言需求解析和自动配置清单生成</p>
+            </div>
+        </header>
+
+        <!-- 配置区域 -->
+        <section class="config-section">
+            <div class="config-card">
+                <h3><i class="fas fa-cog"></i> API 配置</h3>
+                <div class="config-status">
+                    <div class="status-item">
+                        <span class="status-label">API 端点:</span>
+                        <span id="apiEndpoint" class="status-value">加载中...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">认证方式:</span>
+                        <span id="authType" class="status-value">加载中...</span>
+                    </div>
+                </div>
+                <div class="config-form">
+                    <div class="form-group">
+                        <label for="apiKey">API Key</label>
+                        <input type="password" id="apiKey" placeholder="请输入您的 API Key">
+                        <button type="button" id="toggleApiKey" class="toggle-btn">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label for="workflowId">工作流 ID (可选)</label>
+                        <input type="text" id="workflowId" placeholder="如果需要指定工作流 ID，请输入">
+                    </div>
+                    <div class="form-group" id="advancedOptions" style="display: none;">
+                        <label for="customBaseUrl">自定义 API 端点</label>
+                        <input type="text" id="customBaseUrl" placeholder="留空使用默认配置">
+                    </div>
+                    <button type="button" id="toggleAdvanced" class="advanced-toggle">
+                        <i class="fas fa-chevron-down"></i>
+                        <span>高级选项</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 输入区域 -->
+        <section class="input-section">
+            <div class="input-card">
+                <h3><i class="fas fa-edit"></i> 需求输入</h3>
+                <div class="input-form">
+                    <div class="form-group">
+                        <label for="userRequirement">请描述您的云服务需求</label>
+                        <textarea 
+                            id="userRequirement" 
+                            placeholder="例如：2 个应用系统，共13台 8C16G 云服务器，配置系统盘 140G，数据盘 180G，分别配置 30M 出口带宽，给我配置清单"
+                            rows="4"
+                        ></textarea>
+                    </div>
+                    <div class="suggested-questions">
+                        <p>建议问题：</p>
+                        <div class="suggestions">
+                            <button class="suggestion-btn" data-text="我需要2台云服务器，4核8GB配置">我需要2台云服务器，4核8GB配置</button>
+                            <button class="suggestion-btn" data-text="搭建一个电商网站，需要高可用架构">搭建一个电商网站，需要高可用架构</button>
+                            <button class="suggestion-btn" data-text="开发环境需要MySQL数据库和应用服务器">开发环境需要MySQL数据库和应用服务器</button>
+                        </div>
+                    </div>
+                    <button id="submitBtn" class="submit-btn">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>生成配置清单</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 加载状态 -->
+        <div id="loadingState" class="loading-state hidden">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>正在分析您的需求，请稍候...</p>
+            </div>
+        </div>
+
+        <!-- 结果展示区域 -->
+        <section id="resultSection" class="result-section hidden">
+            <!-- 需求总结 -->
+            <div class="summary-card">
+                <h3><i class="fas fa-chart-line"></i> 需求分析总结</h3>
+                <div id="summaryContent" class="summary-content"></div>
+            </div>
+
+            <!-- 配置清单 -->
+            <div class="config-list-card">
+                <h3><i class="fas fa-list-alt"></i> 详细配置清单</h3>
+                <div class="config-header">
+                    <div class="config-info">
+                        <span id="configId" class="config-id"></span>
+                        <span id="configTime" class="config-time"></span>
+                    </div>
+                    <div class="config-summary">
+                        <span id="totalItems" class="total-items"></span>
+                    </div>
+                </div>
+                
+                <!-- 分类标签 -->
+                <div class="category-tabs">
+                    <button class="tab-btn active" data-category="all">全部</button>
+                    <button class="tab-btn" data-category="compute">
+                        <i class="fas fa-server"></i> 计算服务
+                    </button>
+                    <button class="tab-btn" data-category="storage">
+                        <i class="fas fa-database"></i> 存储服务
+                    </button>
+                    <button class="tab-btn" data-category="network">
+                        <i class="fas fa-network-wired"></i> 网络服务
+                    </button>
+                    <button class="tab-btn" data-category="security">
+                        <i class="fas fa-shield-alt"></i> 安全服务
+                    </button>
+                </div>
+
+                <!-- 配置项列表 -->
+                <div id="configItems" class="config-items"></div>
+
+                <!-- 汇总信息 -->
+                <div id="configSummary" class="config-summary-section"></div>
+            </div>
+        </section>
+
+        <!-- 错误提示 -->
+        <div id="errorMessage" class="error-message hidden">
+            <div class="error-content">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="errorText"></span>
+                <button id="closeError" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

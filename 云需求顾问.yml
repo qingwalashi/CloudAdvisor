@@ -1,0 +1,752 @@
+app:
+  description: 云需求顾问（云服务配置助手）- 智能的云服务配置助手系统，集成大模型能力，支持自然语言需求解析和自动配置清单生成
+  icon: 🌥️
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: 云需求顾问
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/deepseek:0.0.6@dd589dc093c8084925858034ab5ec1fdf0d33819f43226c2f8c4a749a9acbbb2
+kind: app
+version: 0.3.1
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        image_file_size_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: 欢迎使用云需求顾问！请描述您的云服务需求，我将为您生成详细的配置清单。
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 我需要2台云服务器，4核8GB配置
+    - 搭建一个电商网站，需要高可用架构
+    - 开发环境需要MySQL数据库和应用服务器
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: code
+      id: start-config
+      source: start
+      sourceHandle: source
+      target: config_manager
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        sourceType: code
+        targetType: code
+      id: config-rules
+      source: config_manager
+      sourceHandle: source
+      target: rules_loader
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        sourceType: code
+        targetType: llm
+      id: rules-llm
+      source: rules_loader
+      sourceHandle: source
+      target: llm
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        sourceType: llm
+        targetType: code
+      id: llm-process
+      source: llm
+      sourceHandle: source
+      target: process
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        sourceType: code
+        targetType: code
+      id: process-generate
+      source: process
+      sourceHandle: source
+      target: generate
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        sourceType: code
+        targetType: end
+      id: generate-end
+      source: generate
+      sourceHandle: source
+      target: end
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: 用户输入节点 - 接收用户的云服务需求描述，支持自然语言输入各种云服务配置需求
+        selected: false
+        title: 需求输入
+        type: start
+        variables:
+        - label: 用户需求
+          max_length: 1000
+          options: []
+          required: true
+          type: text-input
+          variable: user_requirement
+      height: 118
+      id: start
+      position:
+        x: 30
+        y: 272
+      positionAbsolute:
+        x: 30
+        y: 272
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "def main() -> dict:\n    \"\"\"配置管理节点 - 存储所有规则配置\"\"\"\n    config\
+          \ = {\n        \"version\": \"1.0\",\n        \"last_updated\": \"2025-08-03\"\
+          ,\n        \"description\": \"动态规则库配置\",\n\n        \"analysis_rules\":\
+          \ {\n            \"server_counting\": {\n                \"description\"\
+          : \"服务器数量统计规则\",\n                \"priority\": \"high\",\n            \
+          \    \"rules\": [\n                    \"默认一个需求是一个应用系统，除非用户需求表述多个应用系统\"\
+          ,\n                    \"仔细统计每个应用系统的服务器总数量，包括应用服务器、数据库服务器、Redis服务器等所有类型的服务器\"\
+          ,\n                    \"每台服务器都需要对应的ECS云服务器实例\",\n                    \"\
+          数据库、Redis软件等都需要安装在ECS云服务器上\",\n                    \"高可用架构至少需要2台服务器\"\n\
+          \                ]\n            },\n            \"service_mapping\": {\n\
+          \                \"description\": \"服务映射规则\",\n                \"priority\"\
+          : \"high\",\n                \"rules\": [\n                    \"每个应用系统默认通过互联网提供服务\"\
+          ,\n                    \"每个应用系统配置1个弹性公网IP（默认10M带宽）\",\n                \
+          \    \"每个应用系统通常只需要1个负载均衡SLB，，除非明确要求多个\",\n                    \"每个ECS云服务器默认1块100G系统盘，无数据盘\"\
+          \n                ]\n            },\n        },\n\n        \"service_types\"\
+          : {\n            \"ecs\": {\n                \"name\": \"云服务器\",\n     \
+          \           \"description\": \"每台默认配置100GB系统盘\",\n                \"category\"\
+          : \"compute\",\n                \"mandatory\": True,\n                \"\
+          auto_provision\": False,\n                \"specs\": [\n               \
+          \     {\"name\": \"ecs.t5.small\", \"display\": \"通用型 2核4GB\", \"cpu\":\
+          \ 2, \"memory\": 4},\n                    {\"name\": \"ecs.t5.medium\",\
+          \ \"display\": \"通用型 4核8GB\", \"cpu\": 4, \"memory\": 8},\n            \
+          \        {\"name\": \"ecs.c5.large\", \"display\": \"计算优化型 8核16GB\", \"\
+          cpu\": 8, \"memory\": 16}\n                ]\n            },\n         \
+          \   \"system_disk\": {\n                \"name\": \"系统盘\",\n           \
+          \     \"description\": \"默认100GB，按50GB递增\",\n                \"category\"\
+          : \"storage\",\n                \"mandatory\": False,\n                \"\
+          auto_provision\": True,\n                \"default_size\": 100,\n      \
+          \          \"increment\": 50,\n                \"max_size\": 1000\n    \
+          \        },\n            \"data_disk\": {\n                \"name\": \"\
+          数据盘\",\n                \"description\": \"每台服务器最多1块，按50GB递增\",\n      \
+          \          \"category\": \"storage\",\n                \"mandatory\": False,\n\
+          \                \"auto_provision\": False,\n                \"min_size\"\
+          : 50,\n                \"increment\": 50,\n                \"max_size\"\
+          : 2000,\n                \"max_per_server\": 1\n            },\n       \
+          \     \"eip\": {\n                \"name\": \"弹性公网IP\",\n              \
+          \  \"description\": \"带宽选项：10M/20M/50M/100M/200M\",\n                \"\
+          category\": \"network\",\n                \"mandatory\": False,\n      \
+          \          \"auto_provision\": True,\n                \"bandwidth_options\"\
+          : [10, 20, 50, 100, 200],\n                \"default_bandwidth\": 10\n \
+          \           },\n            \"slb\": {\n                \"name\": \"负载均衡SLB\"\
+          ,\n                \"description\": \"规格匹配出口带宽：10M/20M/50M/100M/200M\",\n\
+          \                \"category\": \"network\",\n                \"mandatory\"\
+          : False,\n                \"auto_provision\": False,\n                \"\
+          recommended\": True,\n                \"bandwidth_options\": [10, 20, 50,\
+          \ 100, 200],\n            },\n            \"bastion_host\": {\n        \
+          \        \"name\": \"堡垒机\",\n                \"description\": \"ECS必须配置，根据服务器数量自动选择规格\"\
+          ,\n                \"category\": \"security\",\n                \"mandatory\"\
+          : True,\n                \"auto_provision\": True,\n                \"specs\"\
+          : [\n                    {\"name\": \"license_1\", \"display\": \"1服务器授权\"\
+          , \"max_servers\": 1},\n                    {\"name\": \"license_10\", \"\
+          display\": \"10服务器授权\", \"max_servers\": 10},\n                    {\"name\"\
+          : \"license_20\", \"display\": \"20服务器授权\", \"max_servers\": 20},\n    \
+          \                {\"name\": \"license_50\", \"display\": \"50服务器授权\", \"\
+          max_servers\": 50}\n                ]\n            },\n            \"host_security\"\
+          : {\n                \"name\": \"主机安全\",\n                \"description\"\
+          : \"ECS必须配置，根据服务器数量自动选择规格\",\n                \"category\": \"security\"\
+          ,\n                \"mandatory\": True,\n                \"auto_provision\"\
+          : True,\n                \"specs\": [\n                    {\"name\": \"\
+          license_1\", \"display\": \"1服务器授权\", \"max_servers\": 1},\n           \
+          \         {\"name\": \"license_10\", \"display\": \"10服务器授权\", \"max_servers\"\
+          : 10},\n                    {\"name\": \"license_20\", \"display\": \"20服务器授权\"\
+          , \"max_servers\": 20},\n                    {\"name\": \"license_50\",\
+          \ \"display\": \"50服务器授权\", \"max_servers\": 50}\n                ]\n  \
+          \          }\n        },\n\n        \"environment_config\": {\n        \
+          \    \"storage_type\": \"HDD高速云盘\",\n            \"datacenter\": \"统一机房，无地域区分\"\
+          ,\n            \"internet_access\": \"应用系统默认通过互联网提供服务\",\n        },\n\n\
+          \        \"analysis_steps\": [\n            \"识别应用系统数量\",\n            \"\
+          识别每个应用系统所有类型的服务器及其数量\",\n            \"计算ECS总数量（等于所有服务器数量之和）\",\n      \
+          \      \"确定存储需求（系统盘、数据盘），计算所有ECS对应的系统盘总容量、计算数据盘总容量\"\n            \"识别网络服务需求（SLB、EIP、带宽等）\"\
+          ,\n            \"识别安全服务需求（堡垒机、主机安全等）\"\n            \"生成完整的服务清单\"\n    \
+          \    ],\n\n        \"validation_rules\": {\n            \"server_limits\"\
+          : {\n                \"min_servers\": 1,\n                \"max_servers\"\
+          : 50,\n            },\n            \"bandwidth_limits\": {\n           \
+          \     \"min_bandwidth\": 10,\n                \"max_bandwidth\": 200,\n\
+          \                \"default_bandwidth\": 10\n            },\n           \
+          \ \"storage_limits\": {\n                \"min_system_disk\": 100,\n   \
+          \             \"max_system_disk\": 1000,\n                \"min_data_disk\"\
+          : 50,\n                \"max_data_disk\": 2000\n            }\n        }\n\
+          \    }\n\n    return {\"config\": config}"
+        code_language: python3
+        desc: 配置管理中心 - 集中存储云服务规则库、服务类型定义、分析规则等核心配置，支持版本管理和动态更新
+        outputs:
+          config:
+            children: null
+            type: object
+        selected: false
+        title: 规则配置中心
+        type: code
+        variables: []
+      height: 98
+      id: config_manager
+      position:
+        x: 334
+        y: 272
+      positionAbsolute:
+        x: 334
+        y: 272
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "def main(user_requirement: str, config: dict) -> dict:\n    \"\"\"\
+          动态生成系统提示词和规则\"\"\"\n    try:\n        # 从配置管理节点获取配置数据\n        rules_version\
+          \ = config.get(\"version\", \"\")\n        last_updated = config.get(\"\
+          last_updated\", \"\")\n        analysis_rules = config.get(\"analysis_rules\"\
+          , {})\n        service_types = config.get(\"service_types\", {})\n     \
+          \   environment_config = config.get(\"environment_config\", {})\n      \
+          \  analysis_steps = config.get(\"analysis_steps\", [])\n\n        # 检查必需的配置项，如果缺失则返回错误信息\n\
+          \        missing_configs = []\n        if not analysis_rules:\n        \
+          \    missing_configs.append(\"analysis_rules\")\n        if not service_types:\n\
+          \            missing_configs.append(\"service_types\")\n        if not environment_config:\n\
+          \            missing_configs.append(\"environment_config\")\n        if\
+          \ not analysis_steps:\n            missing_configs.append(\"analysis_steps\"\
+          )\n        \n        if missing_configs:\n            error_msg = f\"配置读取失败，缺少以下配置项:\
+          \ {', '.join(missing_configs)}\"\n            return {\n               \
+          \ \"prompt_data\": {\n                    \"system_prompt\": error_msg,\n\
+          \                    \"user_prompt\": user_requirement,\n              \
+          \      \"rules_version\": rules_version,\n                    \"error\"\
+          : error_msg\n                }\n            }\n\n        # 构建系统提示词\n   \
+          \     version_line = \"规则库版本: \" + str(rules_version) + \" (更新时间: \" + str(last_updated)\
+          \ + \")\"\n\n        # 构建分析规则部分\n        rules_section = \"重要分析规则：\"\n \
+          \       for category, rule_data in analysis_rules.items():\n           \
+          \ if isinstance(rule_data, dict) and 'rules' in rule_data:\n           \
+          \     rules_section += \"\\\\n\" + rule_data.get('description', category)\
+          \ + \":\"\n                for rule in rule_data['rules']:\n           \
+          \         rules_section += \"\\\\n- \" + rule\n            else:\n     \
+          \           rules_section += \"\\\\n- \" + str(rule_data)\n\n        # 构建服务类型部分\n\
+          \        services_section = \"可用的服务类型包括：\"\n        for service_key, service_data\
+          \ in service_types.items():\n            if isinstance(service_data, dict):\n\
+          \                name = service_data.get('name', service_key)\n        \
+          \        desc = service_data.get('description', '')\n                services_section\
+          \ += \"\\\\n- \" + service_key + \": \" + name + \"（\" + desc + \"）\"\n\
+          \            else:\n                services_section += \"\\\\n- \" + str(service_data)\n\
+          \n        # 构建环境说明部分\n        env_section = \"重要注意事项：\"\n        if isinstance(environment_config,\
+          \ dict):\n            for key, value in environment_config.items():\n  \
+          \              env_section += \"\\\\n- \" + str(value)\n        else:\n\
+          \            env_section += \"\\\\n- \" + str(environment_config)\n\n  \
+          \      # 构建分析步骤部分\n        steps_section = \"分析步骤：\"\n        for i, step\
+          \ in enumerate(analysis_steps):\n            steps_section += \"\\\\n\"\
+          \ + str(i+1) + \". \" + step\n\n        # 组装完整提示词\n        system_prompt\
+          \ = \"你是一个专业的云服务需求分析师。请仔细分析用户的云服务需求，准确识别每种服务的数量，并以JSON格式返回结构化的需求信息。\\\\\
+          n\\\\n\"\n        system_prompt += version_line + \"\\\\n\\\\n\"\n     \
+          \   system_prompt += rules_section + \"\\\\n\\\\n\"\n        system_prompt\
+          \ += \"请按照以下格式返回JSON：\\\\n\"\n        system_prompt += '{\"success\": true,\
+          \ \"application_count\": 应用系统数量, \"compute_services\": [{\"service_type\"\
+          : \"ecs\", \"quantity\": ECS数量, \"specifications\": {\"spec_name\": \"规格名称\"\
+          , \"cpu\": CPU核数, \"memory\": 内存GB}, \"properties\": {\"environment\": \"\
+          环境类型\", \"server_role\": \"服务器角色\"}, \"reason\": \"选择理由\"}], \"storage_services\"\
+          : [{\"service_type\": \"system_disk\", \"quantity\": 系统盘数量, \"specifications\"\
+          : {\"size\": 容量GB, \"disk_type\": \"磁盘类型\"}, \"properties\": {\"total_capacity\"\
+          : 总容量GB}, \"reason\": \"选择理由\"}, {\"service_type\": \"data_disk\", \"quantity\"\
+          : 数据盘数量, \"specifications\": {\"size\": 容量GB, \"disk_type\": \"磁盘类型\"},\
+          \ \"properties\": {\"total_capacity\": 总容量GB}, \"reason\": \"选择理由\"}], \"\
+          network_services\": [{\"service_type\": \"eip\", \"quantity\": 弹性IP数量, \"\
+          specifications\": {\"bandwidth\": 带宽Mbps}, \"properties\": {\"usage\": \"\
+          用途说明\"}, \"reason\": \"选择理由\"}, {\"service_type\": \"slb\", \"quantity\"\
+          : 负载均衡数量, \"specifications\": {\"bandwidth\": 带宽Mbps}, \"properties\": {\"\
+          usage\": \"用途说明\"}, \"reason\": \"选择理由\"}], \"security_services\": [{\"\
+          service_type\": \"bastion_host\", \"quantity\": 堡垒机数量, \"specifications\"\
+          : {\"spec_name\": \"规格名称\", \"max_servers\": 支持服务器数}, \"properties\": {\"\
+          coverage\": \"覆盖范围\"}, \"reason\": \"选择理由\"}, {\"service_type\": \"host_security\"\
+          , \"quantity\": 主机安全数量, \"specifications\": {\"spec_name\": \"规格名称\", \"\
+          max_servers\": 支持服务器数}, \"properties\": {\"coverage\": \"覆盖范围\"}, \"reason\"\
+          : \"选择理由\"}], \"requirements_summary\": \"需求总结，包含应用系统数量和服务器总数统计\", \"total_servers\"\
+          : 服务器总数量, \"server_breakdown\": {\"application_servers\": 应用服务器数量, \"database_servers\"\
+          : 数据库服务器数量, \"cache_servers\": 缓存服务器数量, \"other_servers\": 其他服务器数量}, \"\
+          special_requirements\": [\"特殊需求列表\"]}'\n        system_prompt += \"\\\\\
+          n\\\\n\" + services_section + \"\\\\n\\\\n\"\n        system_prompt += env_section\
+          \ + \"\\\\n\\\\n\"\n        system_prompt += steps_section + \"\\\\n\\\\\
+          n\"\n        system_prompt += \"请仔细分析用户需求，准确计算应用系统数量、服务器规格与数量、存储规格与数量、网络服务规格与数量、安全服务规格与数量，并给出合理的配置建议。\"\
+          \n        \n        return {\n            \"prompt_data\": {\n         \
+          \       \"system_prompt\": system_prompt,\n                \"user_prompt\"\
+          : user_requirement,\n                \"rules_version\": rules_version\n\
+          \            }\n        }\n    except Exception as e:\n        return {\n\
+          \            \"prompt_data\": {\n                \"system_prompt\": \"系统提示词生成失败\"\
+          ,\n                \"user_prompt\": user_requirement,\n                \"\
+          rules_version\": \"unknown\",\n                \"error\": str(e)\n     \
+          \       }\n        }"
+        code_language: python3
+        desc: 智能提示词生成器 - 基于配置管理中心的规则库动态构建AI分析提示词，确保分析准确性和一致性
+        outputs:
+          prompt_data:
+            children: null
+            type: object
+        selected: false
+        title: 提示词构建器
+        type: code
+        variables:
+        - value_selector:
+          - start
+          - user_requirement
+          variable: user_requirement
+        - value_selector:
+          - config_manager
+          - config
+          variable: config
+      height: 82
+      id: rules_loader
+      position:
+        x: 638
+        y: 272
+      positionAbsolute:
+        x: 638
+        y: 272
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: AI需求分析引擎 - 使用DeepSeek大模型基于动态提示词智能解析用户需求，输出结构化的云服务配置方案
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: deepseek-chat
+          provider: langgenius/deepseek/deepseek
+        prompt_template:
+        - id: system
+          role: system
+          text: '{{#rules_loader.prompt_data.system_prompt#}}'
+        - id: user
+          role: user
+          text: '{{#rules_loader.prompt_data.user_prompt#}}'
+        selected: false
+        title: 智能需求分析
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 118
+      id: llm
+      position:
+        x: 942
+        y: 272
+      positionAbsolute:
+        x: 942
+        y: 272
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "import json\nimport re\n\ndef main(llm_result, user_requirement) ->\
+          \ dict:\n    \"\"\"处理AI解析结果\"\"\"\n    try:\n        # 提取JSON内容，处理markdown代码块格式\n\
+          \        json_content = llm_result.strip()\n        \n        # 如果包含markdown代码块，提取其中的JSON\n\
+          \        if '```json' in json_content:\n            # 使用正则表达式提取JSON内容\n\
+          \            json_match = re.search(r'```json\\s*\\n(.*?)\\n```', json_content,\
+          \ re.DOTALL)\n            if json_match:\n                json_content =\
+          \ json_match.group(1).strip()\n        elif '```' in json_content:\n   \
+          \         # 处理普通代码块\n            json_match = re.search(r'```\\s*\\n(.*?)\\\
+          n```', json_content, re.DOTALL)\n            if json_match:\n          \
+          \      json_content = json_match.group(1).strip()\n        \n        # 尝试解析JSON\n\
+          \        if json_content.startswith('{'):\n            parsed_data = json.loads(json_content)\n\
+          \            if parsed_data.get('success', False):\n                summary\
+          \ = parsed_data.get('requirements_summary', '需求已解析')\n                \n\
+          \                requirements = []\n                \n                #\
+          \ 处理计算服务\n                compute_services = parsed_data.get('compute_services',\
+          \ [])\n                for service_data in compute_services:\n         \
+          \           service_type = service_data.get('service_type')\n          \
+          \          if service_type:\n                        quantity = service_data.get('quantity',\
+          \ 1)\n                        specifications = service_data.get('specifications',\
+          \ {})\n                        properties = service_data.get('properties',\
+          \ {})\n                        \n                        requirement = {\n\
+          \                            'service': service_type,\n                \
+          \            'spec': specifications.get('spec_name'),\n                \
+          \            'quantity': quantity,\n                            'properties':\
+          \ properties,\n                            'category': 'compute'\n     \
+          \                   }\n                        requirements.append(requirement)\n\
+          \                \n                # 处理存储服务\n                storage_services\
+          \ = parsed_data.get('storage_services', [])\n                for service_data\
+          \ in storage_services:\n                    service_type = service_data.get('service_type')\n\
+          \                    if service_type:\n                        quantity\
+          \ = service_data.get('quantity', 1)\n                        specifications\
+          \ = service_data.get('specifications', {})\n                        properties\
+          \ = service_data.get('properties', {})\n                        \n     \
+          \                   requirement = {\n                            'service':\
+          \ service_type,\n                            'spec': specifications.get('size',\
+          \ specifications.get('spec_name')),\n                            'quantity':\
+          \ quantity,\n                            'properties': properties,\n   \
+          \                         'category': 'storage'\n                      \
+          \  }\n                        requirements.append(requirement)\n       \
+          \         \n                # 处理网络服务\n                network_services =\
+          \ parsed_data.get('network_services', [])\n                for service_data\
+          \ in network_services:\n                    service_type = service_data.get('service_type')\n\
+          \                    if service_type:\n                        quantity\
+          \ = service_data.get('quantity', 1)\n                        specifications\
+          \ = service_data.get('specifications', {})\n                        properties\
+          \ = service_data.get('properties', {})\n                        \n     \
+          \                   requirement = {\n                            'service':\
+          \ service_type,\n                            'spec': specifications.get('bandwidth',\
+          \ specifications.get('spec_name')),\n                            'quantity':\
+          \ quantity,\n                            'properties': properties,\n   \
+          \                         'category': 'network'\n                      \
+          \  }\n                        requirements.append(requirement)\n       \
+          \         \n                # 处理安全服务\n                security_services\
+          \ = parsed_data.get('security_services', [])\n                for service_data\
+          \ in security_services:\n                    service_type = service_data.get('service_type')\n\
+          \                    if service_type:\n                        quantity\
+          \ = service_data.get('quantity', 1)\n                        specifications\
+          \ = service_data.get('specifications', {})\n                        properties\
+          \ = service_data.get('properties', {})\n                        \n     \
+          \                   requirement = {\n                            'service':\
+          \ service_type,\n                            'spec': specifications.get('spec_name'),\n\
+          \                            'quantity': quantity,\n                   \
+          \         'properties': properties,\n                            'category':\
+          \ 'security'\n                        }\n                        requirements.append(requirement)\n\
+          \                \n                # 如果有任何服务被解析到，认为解析成功\n              \
+          \  if requirements:\n                    return {\n                    \
+          \    \"requirements\": {\"list\": requirements},\n                     \
+          \   \"parse_info\": \"\U0001F916 AI解析: \" + summary,\n                 \
+          \       \"success\": \"true\"\n                    }\n\n        # AI解析失败\n\
+          \        return {\n            \"requirements\": {\"list\": []},\n     \
+          \       \"parse_info\": \"AI解析失败：无法识别有效的服务配置\",\n            \"success\"\
+          : \"false\"\n        }\n\n    except Exception as e:\n        return {\n\
+          \            \"requirements\": {\"list\": []},\n            \"parse_info\"\
+          : \"解析失败: \" + str(e),\n            \"success\": \"false\"\n        }"
+        code_language: python3
+        desc: 结果处理器 - 解析AI输出的JSON结果，提取服务配置信息，处理异常情况并进行数据标准化
+        outputs:
+          parse_info:
+            children: null
+            type: string
+          requirements:
+            children: null
+            type: object
+          success:
+            children: null
+            type: string
+        selected: false
+        title: 结果解析处理
+        type: code
+        variables:
+        - value_selector:
+          - llm
+          - text
+          variable: llm_result
+        - value_selector:
+          - start
+          - user_requirement
+          variable: user_requirement
+      height: 98
+      id: process
+      position:
+        x: 1246
+        y: 272
+      positionAbsolute:
+        x: 1246
+        y: 272
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "import json\nfrom datetime import datetime\n\ndef select_security_spec(server_count):\n\
+          \    \"\"\"根据服务器数量选择安全服务规格\"\"\"\n    if server_count <= 1:\n        return\
+          \ \"license_1\"\n    elif server_count <= 10:\n        return \"license_10\"\
+          \n    elif server_count <= 20:\n        return \"license_20\"\n    else:\n\
+          \        return \"license_50\"\n\ndef select_bandwidth_spec(requested_bandwidth):\n\
+          \    \"\"\"根据请求带宽选择标准规格（向上匹配）\"\"\"\n    # 预置的标准带宽规格\n\
+          \    standard_bandwidths = [10, 20, 50, 100, 200]\n    \n    # 如果请求带宽为空或0，返回默认10M\n\
+          \    if not requested_bandwidth or requested_bandwidth <= 0:\n        return 10\n    \n    # 向上匹配：找到第一个大于等于请求带宽的标准规格\n\
+          \    for bandwidth in standard_bandwidths:\n        if requested_bandwidth <= bandwidth:\n            return bandwidth\n    \n    # 如果超过最大规格，返回最大规格\n    return standard_bandwidths[-1]\n\ndef normalize_storage_spec(requested_size, is_system_disk=False):\n\
+          \    \"\"\"标准化存储规格，按50GB递增\"\"\"\n    if not requested_size or requested_size <= 0:\n        return 100 if is_system_disk else 50\n    \n    if is_system_disk:\n        # 系统盘：100G基础上按50G递增\n        if requested_size <= 100:\n            return 100\n        return 100 + ((requested_size - 100 - 1) // 50 + 1) * 50\n    else:\n        # 数据盘：按50GB递增\n        return ((requested_size - 1) // 50 + 1) * 50\n\ndef apply_mandatory_rules(requirements):\n\
+          \    \"\"\"应用强制依赖规则\"\"\"\n    additional_services = []\n    total_ecs =\
+          \ sum(req['quantity'] for req in requirements if req['service'] == 'ecs')\n\
+          \n    if total_ecs > 0:\n        existing_services = {req['service'] for req in requirements}\n\
+          \        \n        if 'system_disk' not in existing_services:\n        \
+          \    additional_services.append({\n                'service': 'system_disk',\n\
+          \                'spec': '100GB',\n                'quantity': total_ecs,\n\
+          \                'properties': {'size': 100, 'disk_type': 'HDD高速云盘', 'total_capacity':\
+          \ total_ecs * 100},\n                'auto_added': True,\n             \
+          \   'reason': '每台ECS默认配置100GB系统盘',\n                'category': 'storage'\n\
+          \            })\n\n        if 'eip' not in existing_services:\n        \
+          \    additional_services.append({\n                'service': 'eip',\n \
+          \               'spec': '10M',\n                'quantity': 1,\n       \
+          \         'properties': {'bandwidth': 10},\n                'auto_added':\
+          \ True,\n                'reason': '应用系统公网出口必需',\n                'category':\
+          \ 'network'\n            })\n\n        # 强制使用最优安全服务配置，覆盖AI可能返回的错误配置\n        # 计算堡垒机最优规格组合\n        bastion_specs = calculate_optimal_security_specs(total_ecs)\n        for spec_info in bastion_specs:\n            additional_services.append({\n                'service': 'bastion_host',\n                'spec': spec_info['spec'],\n                'quantity': spec_info['quantity'],\n                'properties': {'max_servers': spec_info['max_servers'], 'covers': spec_info['covers']},\n                'auto_added': True,\n                'reason': '运维安全审计要求',\n                'category': 'security'\n            })\n\n        # 计算主机安全最优规格组合\n        host_security_specs = calculate_optimal_security_specs(total_ecs)\n        for spec_info in host_security_specs:\n            additional_services.append({\n                'service': 'host_security',\n                'spec': spec_info['spec'],\n                'quantity': spec_info['quantity'],\n                'properties': {'max_servers': spec_info['max_servers'], 'covers': spec_info['covers']},\n                'auto_added': True,\n                'reason': '主机安全防护要求',\n                'category': 'security'\n            })\n\n    return additional_services\n\ndef normalize_bandwidth_specs(requirements_list):\n\
+          \    \"\"\"标准化带宽规格，确保符合预置规格\"\"\"\n    for req in requirements_list:\n\
+          \        if req['service'] in ['eip', 'slb']:\n            # 提取当前带宽值\n\
+          \            current_bandwidth = None\n            \n            # 从properties中获取带宽\n\
+          \            if 'properties' in req and 'bandwidth' in req['properties']:\n\
+          \                current_bandwidth = req['properties']['bandwidth']\n            # 从spec中解析带宽\n\
+          \            elif 'spec' in req:\n                try:\n                    spec_str = str(req['spec']).replace('M', '').replace('m', '')\n                    current_bandwidth = int(spec_str)\n                except:\n                    current_bandwidth = None\n            \n            # 标准化带宽规格\n\
+          \            if current_bandwidth:\n                standard_bandwidth = select_bandwidth_spec(current_bandwidth)\n\
+          \                req['spec'] = f\"{standard_bandwidth}M\"\n                if 'properties' not in req:\n                    req['properties'] = {}\n                req['properties']['bandwidth'] = standard_bandwidth\n                \n                # 如果是向上调整，添加说明\n\
+          \                if standard_bandwidth > current_bandwidth:\n                    original_reason = req.get('reason', '')\n                    req['reason'] = f\"已调整为标准规格{standard_bandwidth}M\"\n    return requirements_list\n\ndef normalize_storage_specs(requirements_list):\n\
+          \    \"\"\"标准化存储规格，系统盘100G基础上按50GB递增，数据盘按50GB递增\"\"\"\n    for req in requirements_list:\n\
+          \        if req['service'] in ['system_disk', 'data_disk']:\n            # 提取当前容量值\n\
+          \            current_size = None\n            \n            # 从properties中获取容量\n\
+          \            if 'properties' in req and 'size' in req['properties']:\n\
+          \                current_size = req['properties']['size']\n            # 从spec中解析容量\n\
+          \            elif 'spec' in req:\n                try:\n                    spec_str = str(req['spec']).replace('GB', '').replace('G', '')\n                    current_size = int(spec_str)\n                except:\n                    current_size = None\n            \n            # 标准化存储规格\n\
+          \            if current_size:\n                is_system_disk = req['service'] == 'system_disk'\n                standard_size = normalize_storage_spec(current_size, is_system_disk)\n\
+          \                req['spec'] = f\"{standard_size}GB\"\n                if 'properties' not in req:\n                    req['properties'] = {}\n                req['properties']['size'] = standard_size\n                \n                # 更新总容量\n                if 'total_capacity' in req['properties']:\n                    req['properties']['total_capacity'] = standard_size * req['quantity']\n                \n                # 如果是向上调整，添加说明\n\
+          \                if standard_size > current_size:\n                    req['reason'] = f\"已调整为标准规格{standard_size}GB\"\n    return requirements_list\n\ndef get_spec_capacity(spec_name):\n\
+          \    \"\"\"获取规格对应的服务器容量\"\"\"\n    capacity_map = {\n        \"license_1\"\
+          : 1,\n        \"license_10\": 10,\n        \"license_20\": 20,\n       \
+          \ \"license_50\": 50\n    }\n    return capacity_map.get(spec_name, 1)\n\ndef format_properties_text_chinese(properties):\n\
+          \    \"\"\"将属性转换为中文格式的文本\"\"\"\n    if not properties:\n        return \"\"\n    \n    # 中文属性映射\n    chinese_mapping = {\n        'environment': '环境',\n        'server_role': '服务器角色',\n        'size': '容量',\n        'disk_type': '磁盘类型',\n        'total_capacity': '总容量',\n        'bandwidth': '带宽',\n        'max_servers': '最大服务器数',\n        'covers': '覆盖服务器数',\n        'coverage': '覆盖范围',\n        'cpu': 'CPU核数',\n        'memory': '内存',\n        'usage': '用途'\n    }\n    \n    # 中文值映射\n    value_mapping = {\n        'production': '生产环境',\n        'development': '开发环境',\n        'testing': '测试环境',\n        'application_server': '应用服务器',\n        'database_server': '数据库服务器',\n        'web_server': 'Web服务器',\n        'HDD高速云盘': 'HDD高速云盘',\n        'SSD云盘': 'SSD云盘'\n    }\n    \n    prop_parts = []\n    for key, value in properties.items():\n        if value:\n            chinese_key = chinese_mapping.get(key, key)\n            chinese_value = value_mapping.get(str(value), str(value))\n            \n            # 特殊格式化\n            if key == 'size' and isinstance(value, (int, float)):\n                chinese_value = f\"{value}GB\"\n            elif key == 'total_capacity' and isinstance(value, (int, float)):\n                chinese_value = f\"{value}GB\"\n            elif key == 'bandwidth' and isinstance(value, (int, float)):\n                chinese_value = f\"{value}M\"\n            elif key in ['cpu', 'memory'] and isinstance(value, (int, float)):\n                unit = '核' if key == 'cpu' else 'GB'\n                chinese_value = f\"{value}{unit}\"\n            elif key in ['max_servers', 'covers'] and isinstance(value, (int, float)):\n                chinese_value = f\"{value}台\"\n            \n            prop_parts.append(f\"{chinese_key}: {chinese_value}\")\n    \n    return \", \".join(prop_parts)\n\ndef calculate_optimal_security_specs(total_servers):\n\
+          \    \"\"\"计算最优的安全服务规格组合\"\"\"\n    specs = [50, 20, 10, 1]  # 从大到小的规格\n    result = []\n    remaining = total_servers\n    \n    for spec in specs:\n        if remaining >= spec:\n            count = remaining // spec\n            if count > 0:\n                result.append({\n                    'spec': f'license_{spec}',\n                    'quantity': count,\n                    'covers': spec * count,\n                    'max_servers': spec\n                })\n                remaining -= spec * count\n    \n    return result\n\
+          \ndef format_spec_display(service_name, spec, properties):\n    \"\"\"格式化规格显示信息\"\
+          \"\"\n    try:\n        if service_name == 'ecs':\n            specs_map\
+          \ = {\n                \"ecs.t5.small\": \"通用型 2核4GB\",\n              \
+          \  \"ecs.t5.medium\": \"通用型 4核8GB\", \n                \"ecs.c5.large\"\
+          : \"计算优化型 8核16GB\",\n                \"4C8G\": \"通用型 4核8GB\"\n         \
+          \   }\n            return specs_map.get(str(spec), str(spec))\n        elif\
+          \ service_name in ['system_disk', 'data_disk']:\n            size = properties.get('size',\
+          \ spec)\n            return f\"{size}GB HDD高速云盘\"\n        elif service_name\
+          \ in ['eip', 'slb']:\n            bandwidth = properties.get('bandwidth',\
+          \ spec)\n            return f\"{bandwidth}M带宽\"\n        elif service_name\
+          \ in ['bastion_host', 'host_security']:\n            # 获取服务器数量\n\
+          \            max_servers = properties.get('max_servers', get_spec_capacity(str(spec)))\n            specs_map = {\n   \
+          \             \"license_1\": f\"{max_servers}台服务器授权\",\n                \"license_10\"\
+          : f\"{max_servers}台服务器授权\", \n                \"license_20\": f\"{max_servers}台服务器授权\",\n        \
+          \        \"license_50\": f\"{max_servers}台服务器授权\",\n                \"basic\": f\"{max_servers}台服务器授权\"\
+          \n            }\n            return specs_map.get(str(spec), f\"{max_servers}台服务器授权\")\n\
+          \        return str(spec) if spec else ''\n    except:\n        return str(spec)\
+          \ if spec else ''\n\ndef safe_extract_properties(properties):\n    \"\"\"\
+          安全提取属性信息，避免深度嵌套\"\"\"\n    if not isinstance(properties, dict):\n      \
+          \  return {}\n    \n    safe_props = {}\n    for key, value in properties.items():\n\
+          \        if isinstance(value, (str, int, float, bool)):\n            safe_props[key]\
+          \ = value\n        elif value is None:\n            safe_props[key] = None\n\
+          \        else:\n            safe_props[key] = str(value)\n    return safe_props\n\
+          \ndef main(requirements: dict, parse_info: str, success: str) -> dict:\n\
+          \    \"\"\"生成最终的配置清单\"\"\"\n    try:\n        if success != \"true\":\n\
+          \            return {\n                \"config_list\": None,\n        \
+          \        \"response_text\": \"抱歉，我没有理解您的需求。请描述您需要的云服务，例如：'我需要2台云服务器，4核8GB配置'\"\
+          \n            }\n\n        requirements_list = requirements.get(\"list\"\
+          , []) if isinstance(requirements, dict) else []\n\n        if not requirements_list:\n\
+          \            return {\n                \"config_list\": None,\n        \
+          \        \"response_text\": \"抱歉，我没有理解您的需求。请描述您需要的云服务，例如：'我需要2台云服务器，4核8GB配置'\"\
+          \n            }\n\n        # 标准化带宽规格\n        requirements_list = normalize_bandwidth_specs(requirements_list)\n        \n        # 标准化存储规格\n        requirements_list = normalize_storage_specs(requirements_list)\n        \n        # 移除AI可能返回的错误安全服务配置，确保使用强制计算的正确配置\n        requirements_list = [req for req in requirements_list if req.get('service') not in ['bastion_host', 'host_security']]\n        \n        # 应用强制规则\n        additional_services = apply_mandatory_rules(requirements_list)\n\
+          \        all_requirements = requirements_list + additional_services\n        \n        # 再次标准化所有服务的规格（包括自动添加的服务）\n        all_requirements = normalize_bandwidth_specs(all_requirements)\n        all_requirements = normalize_storage_specs(all_requirements)\n\n\
+          \        # 服务目录\n        services_catalog = {\n            \"ecs\": {\"\
+          name\": \"云服务器ECS\", \"category\": \"compute\"},\n            \"system_disk\"\
+          : {\"name\": \"系统盘\", \"category\": \"storage\"},\n            \"data_disk\"\
+          : {\"name\": \"数据盘\", \"category\": \"storage\"},\n            \"eip\":\
+          \ {\"name\": \"弹性公网IP\", \"category\": \"network\"},\n            \"slb\"\
+          : {\"name\": \"负载均衡SLB\", \"category\": \"network\"},\n            \"bastion_host\"\
+          : {\"name\": \"堡垒机\", \"category\": \"security\"},\n            \"host_security\"\
+          : {\"name\": \"主机安全\", \"category\": \"security\"}\n        }\n\n      \
+          \  # 生成详细的配置项列表\n        detailed_items = []\n        compute_items = []\n\
+          \        storage_items = []\n        network_items = []\n        security_items\
+          \ = []\n\n        for req in all_requirements:\n            service_info\
+          \ = services_catalog.get(req['service'], {})\n            category = req.get('category',\
+          \ service_info.get('category', 'other'))\n\n            # 安全提取属性\n     \
+          \       safe_props = safe_extract_properties(req.get('properties', {}))\n\
+          \n            # 将properties转换为中文格式的文本\n            properties_text = format_properties_text_chinese(safe_props)\n\n       \
+          \     # 创建详细的配置项\n            item = {\n                'service_name':\
+          \ req['service'],\n                'service_display_name': service_info.get('name',\
+          \ req['service']),\n                'spec_name': str(req['spec']),\n   \
+          \             'spec_display_name': format_spec_display(req['service'], req['spec'],\
+          \ safe_props),\n                'quantity': int(req['quantity']),\n    \
+          \            'auto_added': bool(req.get('auto_added', False)),\n       \
+          \         'reason': str(req.get('reason', '')),\n                'category':\
+          \ category,\n                'properties_text': properties_text\n      \
+          \      }\n\n            detailed_items.append(item)\n\n            # 按类别分组\n\
+          \            if category == 'compute':\n                compute_items.append(item)\n\
+          \            elif category == 'storage':\n                storage_items.append(item)\n\
+          \            elif category == 'network':\n                network_items.append(item)\n\
+          \            elif category == 'security':\n                security_items.append(item)\n\
+          \n        # 计算详细汇总信息\n        total_ecs = sum(item['quantity'] for item\
+          \ in compute_items if item['service_name'] == 'ecs')\n        \n       \
+          \ # 计算存储总容量\n        total_storage = 0\n        storage_breakdown = {}\n\
+          \        for item in storage_items:\n            # 从properties_text中提取total_capacity，或者从spec计算\n\
+          \            capacity = 0\n            if 'total_capacity:' in item['properties_text']:\n\
+          \                # 尝试从properties_text中提取total_capacity\n               \
+          \ try:\n                    for part in item['properties_text'].split(',\
+          \ '):\n                        if part.startswith('total_capacity:'):\n\
+          \                            capacity = int(part.split(':')[1].strip())\n\
+          \                            break\n                except:\n          \
+          \          pass\n\n            # 如果没有找到total_capacity，从spec计算\n        \
+          \    if capacity == 0:\n                try:\n                    capacity\
+          \ = int(str(item['spec_name']).replace('GB', '')) * item['quantity']\n \
+          \               except:\n                    capacity = 0\n\n          \
+          \  total_storage += capacity\n            storage_breakdown[item['service_name']]\
+          \ = capacity\n        \n \
+          \       # 创建完整的配置清单 - 控制在5层嵌套以内\n        config_list = {\n            'config_id':\
+          \ \"CONFIG-\" + datetime.now().strftime('%Y%m%d%H%M%S'),\n            'created_at':\
+          \ datetime.now().isoformat(),\n            'total_items': len(detailed_items),\n\
+          \            'items': detailed_items,\n            'categorized_summary':\
+          \ {\n                'compute': {\n                    'count': len(compute_items),\n\
+          \                    'total_quantity': sum(item['quantity'] for item in\
+          \ compute_items)\n                },\n                'storage': {\n   \
+          \                 'count': len(storage_items),\n                    'total_capacity':\
+          \ total_storage,\n                    'total_quantity': sum(item['quantity']\
+          \ for item in storage_items)\n                },\n                'network':\
+          \ {\n                    'count': len(network_items),\n                \
+          \    'total_quantity':\
+          \ sum(item['quantity'] for item in network_items)\n                },\n\
+          \                'security': {\n                    'count': len(security_items),\n\
+          \                    'total_quantity': sum(item['quantity'] for item in\
+          \ security_items)\n                }\n            },\n            'summary':\
+          \ {\n                'total_ecs': total_ecs,\n                'total_storage_capacity':\
+          \ total_storage\n \
+          \           }\n        }\n\n        # 生成详细的响应文本\n        response_parts\
+          \ = []\n\n        if parse_info:\n            response_parts.append(parse_info\
+          \ + \"\\n\")\n\n        response_parts.append(\"根据您的需求，我为您推荐以下云服务配置：\\n\"\
+          )\n        \n        # 按类别显示服务\n        category_names = {\n           \
+          \ 'compute': '\U0001F4BB 计算服务',\n            'storage': '\U0001F4BE 存储服务',\
+          \ \n            'network': '\U0001F310 网络服务',\n            'security': '\U0001F512\
+          \ 安全服务'\n        }\n\n        # 按类别详细显示\n        for category in ['compute',\
+          \ 'storage', 'network', 'security']:\n            category_items = [item\
+          \ for item in detailed_items if item['category'] == category]\n        \
+          \    if category_items:\n                response_parts.append(f\"\\n{category_names.get(category,\
+          \ category)}:\")\n                \n                if category == 'security':\n                    # 安全服务需要按服务名称分组显示\n                    security_groups = {}\n                    for item in category_items:\n                        service_name = item['service_display_name']\n                        if service_name not in security_groups:\n                            security_groups[service_name] = []\n                        security_groups[service_name].append(item)\n                    \n                    for service_name, items in security_groups.items():\n                        if len(items) == 1:\n                            # 单一规格\n                            item = items[0]\n                            spec_info = f\" - {item['spec_display_name']}\" if item['spec_display_name'] else \"\"\n                            response_parts.append(f\"• {service_name}{spec_info} × {item['quantity']}\")\n                        else:\n                            # 多规格组合\n                            spec_parts = []\n                            for item in items:\n                                spec_parts.append(f\"{item['spec_display_name']}×{item['quantity']}\")\n                            response_parts.append(f\"• {service_name} - {' + '.join(spec_parts)}\")\n                else:\n                    # 其他类别正常显示\n                    for item in category_items:\n                        spec_info = f\" - {item['spec_display_name']}\" if item['spec_display_name'] else \"\"\n                        response_parts.append(f\"• {item['service_display_name']}{spec_info} × {item['quantity']}\")\n\n        # 添加详细汇总信息\n        summary = config_list['summary']\n    \
+          \    response_parts.append(f\"\\n\U0001F4CA 配置汇总:\")\n        response_parts.append(f\"\
+          • 云服务器总数: {summary['total_ecs']}台\")\n        response_parts.append(f\"\
+          • 存储总容量: {summary['total_storage_capacity']}GB\")\n\n        # 存储明细\n  \
+          \      if storage_breakdown:\n            storage_details = []\n       \
+          \     for service, capacity in storage_breakdown.items():\n            \
+          \    service_name = services_catalog.get(service, {}).get('name', service)\n\
+          \                storage_details.append(f\"{service_name}{capacity}GB\"\
+          )\n            response_parts.append(f\"  存储明细: {', '.join(storage_details)}\"\
+          )\n\n        # 网络服务汇总\n        network_summary = []\n        for item in network_items:\n            service_name = services_catalog.get(item['service_name'], {}).get('name', item['service_name'])\n            network_summary.append(f\"{service_name}{item['quantity']}个\")\n        if network_summary:\n            response_parts.append(f\"• 网络服务: {', '.join(network_summary)}\")\n\n        # 安全服务汇总\n        security_summary = []\n        security_groups = {}\n        for item in security_items:\n            service_name = services_catalog.get(item['service_name'], {}).get('name', item['service_name'])\n            if service_name not in security_groups:\n                security_groups[service_name] = 0\n            security_groups[service_name] += item['quantity']\n        \n        for service_name, total_quantity in security_groups.items():\n            security_summary.append(f\"{service_name}{total_quantity}个\")\n        if security_summary:\n            response_parts.append(f\"• 安全服务: {', '.join(security_summary)}\")\n\n        response_text = \"\\n\".join(response_parts)\n\n        return\
+          \ {\n            \"config_list\": config_list,\n            \"response_text\"\
+          : response_text\n        }\n    except Exception as e:\n        return {\n\
+          \            \"config_list\": None,\n            \"response_text\": f\"\
+          生成配置清单时发生错误: {str(e)}\"\n        }"
+        code_language: python3
+        desc: 配置清单生成器 - 应用业务规则进行规格标准化、强制依赖补全，生成详细的云服务配置清单和用户友好的展示文本
+        outputs:
+          config_list:
+            children: null
+            type: object
+          response_text:
+            children: null
+            type: string
+        selected: true
+        title: 配置清单生成
+        type: code
+        variables:
+        - value_selector:
+          - process
+          - requirements
+          variable: requirements
+        - value_selector:
+          - process
+          - parse_info
+          variable: parse_info
+        - value_selector:
+          - process
+          - success
+          variable: success
+      height: 82
+      id: generate
+      position:
+        x: 1550
+        y: 272
+      positionAbsolute:
+        x: 1550
+        y: 272
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: 结果输出节点 - 向用户展示最终生成的云服务配置清单和详细的配置说明文本
+        outputs:
+        - value_selector:
+          - generate
+          - response_text
+          value_type: string
+          variable: response_text
+        - value_selector:
+          - generate
+          - config_list
+          value_type: object
+          variable: config_list
+        selected: false
+        title: 输出结果
+        type: end
+      height: 144
+      id: end
+      position:
+        x: 1854
+        y: 272
+      positionAbsolute:
+        x: 1854
+        y: 272
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport:
+      x: -169.0437848949191
+      y: 22.955854142123542
+      zoom: 0.6093853943072869

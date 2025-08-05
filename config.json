@@ -1,0 +1,37 @@
+{
+  "api": {
+    "baseUrl": "https://api.dify.ai/v1/workflows/run",
+    "authentication": {
+      "type": "bearer",
+      "headerName": "Authorization",
+      "tokenPrefix": "Bearer "
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "timeout": 60000,
+    "retryAttempts": 2,
+    "retryDelay": 1000
+  },
+  "workflow": {
+    "defaultWorkflowId": "",
+    "responseMode": "blocking",
+    "userIdPrefix": "web-user-"
+  },
+  "ui": {
+    "title": "云需求顾问",
+    "subtitle": "智能的云服务配置助手系统，集成大模型能力，支持自然语言需求解析和自动配置清单生成",
+    "suggestedQuestions": [
+      "我需要2台云服务器，4核8GB配置",
+      "搭建一个电商网站，需要高可用架构",
+      "开发环境需要MySQL数据库和应用服务器"
+    ],
+    "placeholderText": "例如：2 个应用系统，共13台 8C16G 云服务器，配置系统盘 140G，数据盘 180G，分别配置 30M 出口带宽，给我配置清单"
+  },
+  "features": {
+    "saveApiKey": true,
+    "autoSaveConfig": true,
+    "exportConfig": true,
+    "showAdvancedOptions": false
+  }
+}
