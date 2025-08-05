@@ -618,6 +618,77 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
+/* 视图切换按钮样式 */
+.view-toggle {
+    display: flex;
+    gap: 10px;
+}
+
+.view-btn, .export-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 15px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.view-btn:hover, .export-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.view-btn.active {
+    background: var(--primary-gradient);
+    border-color: transparent;
+    color: white;
+}
+
+/* 表格视图样式 */
+.config-table-container {
+    overflow-x: auto;
+    margin-bottom: 30px;
+}
+
+.config-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-primary);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.config-table th,
+.config-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.config-table th {
+    background: var(--bg-secondary);
+    font-weight: 600;
+    color: var(--text-primary);
+    position: sticky;
+    top: 0;
+}
+
+.config-table tbody tr:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.config-table td {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
 @keyframes slideIn {
     from {
         transform: translateX(100%);
@@ -633,6 +704,16 @@ body {
 @media (max-width: 768px) {
     .container {
         padding: 15px;
+    }
+    
+    .view-toggle {
+        margin-top: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .view-btn, .export-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
     }
 
     .logo {
@@ -674,5 +755,14 @@ body {
         left: 20px;
         right: 20px;
         max-width: none;
+    }
+    
+    .config-table {
+        font-size: 0.8rem;
+    }
+    
+    .config-table th,
+    .config-table td {
+        padding: 8px 10px;
     }
 }

@@ -17,10 +17,15 @@ const elements = {
     configTime: document.getElementById('configTime'),
     totalItems: document.getElementById('totalItems'),
     configItems: document.getElementById('configItems'),
+    configTableContainer: document.getElementById('configTableContainer'),
+    configTableBody: document.getElementById('configTableBody'),
     configSummary: document.getElementById('configSummary'),
     errorMessage: document.getElementById('errorMessage'),
     errorText: document.getElementById('errorText'),
-    closeError: document.getElementById('closeError')
+    closeError: document.getElementById('closeError'),
+    cardViewBtn: document.getElementById('cardViewBtn'),
+    tableViewBtn: document.getElementById('tableViewBtn'),
+    exportExcelBtn: document.getElementById('exportExcelBtn')
 };
 
 // 全局配置
@@ -171,6 +176,13 @@ function initializeEventListeners() {
             switchCategory(this.dataset.category);
         });
     });
+
+    // 视图切换按钮
+    elements.cardViewBtn.addEventListener('click', switchToCardView);
+    elements.tableViewBtn.addEventListener('click', switchToTableView);
+    
+    // 导出Excel按钮
+    elements.exportExcelBtn.addEventListener('click', exportToExcel);
 
     // 错误消息关闭
     elements.closeError.addEventListener('click', hideError);
@@ -526,9 +538,15 @@ function displayResult(data) {
 // 显示配置清单
 function displayConfigList(configList) {
     // 显示基本信息
-    elements.configId.textContent = `配置ID: ${configList.config_id}`;
-    elements.configTime.textContent = `生成时间: ${formatDateTime(configList.created_at)}`;
-    elements.totalItems.textContent = `共 ${configList.total_items} 项服务`;
+    if (elements.configId) {
+        elements.configId.textContent = `配置ID: ${configList.config_id}`;
+    }
+    if (elements.configTime) {
+        elements.configTime.textContent = `生成时间: ${formatDateTime(configList.created_at)}`;
+    }
+    if (elements.totalItems) {
+        elements.totalItems.textContent = `共 ${configList.total_items} 项服务`;
+    }
     
     // 显示配置项
     displayConfigItems(configList.items);
@@ -575,9 +593,42 @@ function displayConfigItems(items) {
         ? items
         : items.filter(item => item.category === currentCategory);
 
-    // 生成 HTML
+    // 生成卡片视图 HTML
     const html = filteredItems.map(item => createConfigItemHTML(item)).join('');
     elements.configItems.innerHTML = html;
+    
+    // 生成表格视图 HTML
+    displayConfigTable(filteredItems);
+}
+
+// 显示表格视图
+function displayConfigTable(items) {
+    if (!elements.configTableBody) return;
+    
+    const tableRows = items.map(item => `
+        <tr>
+            <td>${getCategoryName(item.category)}</td>
+            <td>${item.service_display_name}</td>
+            <td>${item.spec_display_name}</td>
+            <td>${item.quantity}</td>
+            <td>${item.properties_text || ''}</td>
+            <td>${item.reason || ''}</td>
+            <td>${item.auto_added ? '是' : '否'}</td>
+        </tr>
+    `).join('');
+    
+    elements.configTableBody.innerHTML = tableRows;
+}
+
+// 获取分类名称
+function getCategoryName(category) {
+    const categoryMap = {
+        'compute': '计算服务',
+        'storage': '存储服务',
+        'network': '网络服务',
+        'security': '安全服务'
+    };
+    return categoryMap[category] || category;
 }
 
 // 创建配置项 HTML
@@ -682,42 +733,67 @@ function formatNumber(num) {
     return num.toString();
 }
 
-// 导出配置清单 (可选功能)
-function exportConfig() {
+// 切换到卡片视图
+function switchToCardView() {
+    if (!elements.cardViewBtn || !elements.tableViewBtn) return;
+    
+    elements.cardViewBtn.classList.add('active');
+    elements.tableViewBtn.classList.remove('active');
+    elements.configItems.classList.remove('hidden');
+    if (elements.configTableContainer) {
+        elements.configTableContainer.classList.add('hidden');
+    }
+}
+
+// 切换到表格视图
+function switchToTableView() {
+    if (!elements.cardViewBtn || !elements.tableViewBtn) return;
+    
+    elements.cardViewBtn.classList.remove('active');
+    elements.tableViewBtn.classList.add('active');
+    elements.configItems.classList.add('hidden');
+    if (elements.configTableContainer) {
+        elements.configTableContainer.classList.remove('hidden');
+    }
+    
+    // 确保表格在视图中可见
+    if (elements.configTableContainer) {
+        elements.configTableContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+// 导出到Excel
+function exportToExcel() {
     if (!currentConfigData || !currentConfigData.config_list) {
         showError('没有可导出的配置数据');
         return;
     }
 
-    const configList = currentConfigData.config_list;
-    const exportData = {
-        config_id: configList.config_id,
-        created_at: configList.created_at,
-        summary: currentConfigData.response_text,
-        items: configList.items.map(item => ({
-            service: item.service_display_name,
-            spec: item.spec_display_name,
-            quantity: item.quantity,
-            category: item.category,
-            properties: item.properties_text,
-            auto_added: item.auto_added,
-            reason: item.reason
-        })),
-        summary_stats: configList.summary
-    };
-
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-        type: 'application/json'
-    });
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `cloud-config-${configList.config_id}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const items = currentConfigData.config_list.items;
+    
+    // 创建工作簿
+    const wb = XLSX.utils.book_new();
+    
+    // 准备数据
+    const data = items.map(item => ({
+        '服务类型': getCategoryName(item.category),
+        '服务名称': item.service_display_name,
+        '规格': item.spec_display_name,
+        '数量': item.quantity,
+        '属性': item.properties_text || '',
+        '说明': item.reason || '',
+        '自动添加': item.auto_added ? '是' : '否'
+    }));
+    
+    // 创建工作表
+    const ws = XLSX.utils.json_to_sheet(data);
+    
+    // 添加工作表到工作簿
+    XLSX.utils.book_append_sheet(wb, ws, '配置清单');
+    
+    // 导出文件
+    const filename = `云服务配置清单-${currentConfigData.config_list.config_id}.xlsx`;
+    XLSX.writeFile(wb, filename);
 }
 
 // 添加导出按钮到页面 (如果需要)
