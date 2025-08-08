@@ -1,0 +1,267 @@
+{
+  "version": "1.0",
+  "last_updated": "2025-08-03",
+  "description": "动态规则库配置",
+  "analysis_rules": {
+    "server_counting": {
+      "description": "服务器数量统计规则",
+      "priority": "high",
+      "rules": [
+        "默认一个需求是一个应用系统，除非用户需求表述多个应用系统",
+        "仔细统计每个应用系统的服务器总数量，包括不同类型的服务器",
+        "每台服务器都需要对应的ECS云服务器实例",
+        "数据库、Redis软件等都需要安装在ECS云服务器上",
+        "高可用架构至少需要2台服务器"
+      ]
+    },
+    "service_mapping": {
+      "description": "服务映射规则",
+      "priority": "high",
+      "rules": [
+        "每个应用系统默认通过互联网提供服务",
+        "每个应用系统配置1个弹性公网IP（默认10M带宽）",
+        "每个应用系统通常只需要1个负载均衡SLB，，除非明确要求多个",
+        "每个ECS云服务器默认1块100G系统盘，无数据盘"
+      ]
+    }
+  },
+  "service_types": {
+    "ecs": {
+      "name": "云服务器",
+      "description": "每台默认配置100GB系统盘",
+      "category": "compute",
+      "mandatory": true,
+      "auto_provision": false,
+      "specs": [
+        {
+          "spec_name": "2C4G",
+          "display": "2核4GB",
+          "cpu": 2,
+          "memory": 4
+        },
+        {
+          "spec_name": "2C8G",
+          "display": "2核8GB",
+          "cpu": 2,
+          "memory": 8
+        },
+        {
+          "spec_name": "4C8G",
+          "display": "4核8GB",
+          "cpu": 4,
+          "memory": 8
+        },
+        {
+          "spec_name": "4C16G",
+          "display": "4核16GB",
+          "cpu": 4,
+          "memory": 16
+        },
+        {
+          "spec_name": "8C16G",
+          "display": "8核16GB",
+          "cpu": 8,
+          "memory": 16
+        },
+        {
+          "spec_name": "8C32G",
+          "display": "8核32GB",
+          "cpu": 8,
+          "memory": 32
+        },
+        {
+          "spec_name": "16C32G",
+          "display": "16核32GB",
+          "cpu": 16,
+          "memory": 32
+        },
+        {
+          "spec_name": "16C64G",
+          "display": "16核64GB",
+          "cpu": 16,
+          "memory": 64
+        },
+        {
+          "spec_name": "32C64G",
+          "display": "32核64GB",
+          "cpu": 32,
+          "memory": 64
+        },
+        {
+          "spec_name": "32C128G",
+          "display": "32核128GB",
+          "cpu": 32,
+          "memory": 128
+        }
+      ]
+    },
+    "system_disk": {
+      "name": "系统盘",
+      "description": "默认100GB，按50GB递增",
+      "category": "storage",
+      "mandatory": false,
+      "auto_provision": true,
+      "default_size": 100,
+      "increment": 50,
+      "max_size": 1000
+    },
+    "data_disk": {
+      "name": "数据盘",
+      "description": "每台服务器最多1块，按50GB递增",
+      "category": "storage",
+      "mandatory": false,
+      "auto_provision": false,
+      "min_size": 50,
+      "increment": 50,
+      "max_size": 2000,
+      "max_per_server": 1
+    },
+    "eip": {
+      "name": "弹性公网IP",
+      "description": "带宽选项：10M/20M/50M/100M/200M",
+      "category": "network",
+      "mandatory": false,
+      "auto_provision": true,
+      "bandwidth_options": [
+        10,
+        20,
+        50,
+        100,
+        200
+      ],
+      "default_bandwidth": 10
+    },
+    "slb": {
+      "name": "负载均衡SLB",
+      "description": "规格匹配出口带宽：10M/20M/50M/100M/200M",
+      "category": "network",
+      "mandatory": false,
+      "auto_provision": false,
+      "recommended": true,
+      "bandwidth_options": [
+        10,
+        20,
+        50,
+        100,
+        200
+      ]
+    },
+    "bastion_host": {
+      "name": "堡垒机",
+      "description": "ECS必须配置，根据服务器数量自动选择规格",
+      "category": "security",
+      "mandatory": true,
+      "auto_provision": true,
+      "specs": [
+        {
+          "spec_name": "license_1",
+          "display": "1服务器授权",
+          "max_servers": 1
+        },
+        {
+          "spec_name": "license_10",
+          "display": "10服务器授权",
+          "max_servers": 10
+        },
+        {
+          "spec_name": "license_20",
+          "display": "20服务器授权",
+          "max_servers": 20
+        },
+        {
+          "spec_name": "license_50",
+          "display": "50服务器授权",
+          "max_servers": 50
+        }
+      ]
+    },
+    "host_security": {
+      "name": "主机安全",
+      "description": "ECS必须配置，根据服务器数量自动选择规格",
+      "category": "security",
+      "mandatory": true,
+      "auto_provision": true,
+      "specs": [
+        {
+          "spec_name": "license_1",
+          "display": "1服务器授权",
+          "max_servers": 1
+        },
+        {
+          "spec_name": "license_10",
+          "display": "10服务器授权",
+          "max_servers": 10
+        },
+        {
+          "spec_name": "license_20",
+          "display": "20服务器授权",
+          "max_servers": 20
+        },
+        {
+          "spec_name": "license_50",
+          "display": "50服务器授权",
+          "max_servers": 50
+        }
+      ]
+    },
+    "firewall": {
+      "name": "出口防火墙",
+      "description": "带宽选项：10M/20M/50M/100M/200M",
+      "category": "security",
+      "mandatory": true,
+      "recommended": true,
+      "bandwidth_options": [
+        10,
+        20,
+        50,
+        100,
+        200
+      ]
+    },
+    "waf": {
+      "name": "WAF（Web应用防火墙）",
+      "description": "带宽选项：10M/20M/50M/100M/200M",
+      "category": "security",
+      "mandatory": true,
+      "recommended": true,
+      "bandwidth_options": [
+        10,
+        20,
+        50,
+        100,
+        200
+      ]
+    }
+  },
+  "environment_config": {
+    "storage_type": "HDD高速云盘",
+    "datacenter": "统一机房，无地域区分",
+    "internet_access": "应用系统默认通过互联网提供服务"
+  },
+  "analysis_steps": [
+    "识别应用系统数量",
+    "识别每个应用系统所有类型的服务器及其数量",
+    "计算ECS总数量（等于所有服务器数量之和）",
+    "确定存储需求（系统盘、数据盘），计算所有ECS对应的系统盘总容量、计算数据盘总容量",
+    "识别网络服务需求（SLB、EIP、带宽等）",
+    "识别安全服务需求（堡垒机、主机安全、防火墙、WAF等）",
+    "生成完整的服务清单"
+  ],
+  "validation_rules": {
+    "server_limits": {
+      "min_servers": 1,
+      "max_servers": 50
+    },
+    "bandwidth_limits": {
+      "min_bandwidth": 10,
+      "max_bandwidth": 200,
+      "default_bandwidth": 10
+    },
+    "storage_limits": {
+      "min_system_disk": 100,
+      "max_system_disk": 1000,
+      "min_data_disk": 50,
+      "max_data_disk": 2000
+    }
+  }
+}
