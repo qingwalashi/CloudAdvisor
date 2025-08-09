@@ -11,7 +11,8 @@
         "仔细统计每个应用系统的服务器总数量，包括不同类型的服务器",
         "每台服务器都需要对应的ECS云服务器实例",
         "数据库、Redis软件等都需要安装在ECS云服务器上",
-        "高可用架构至少需要2台服务器"
+        "高可用架构至少需要2台服务器",
+        "应用系统的默认等保等级是二级"
       ]
     },
     "service_mapping": {
@@ -204,6 +205,54 @@
         }
       ]
     },
+    "log_audit": {
+      "name": "日志审计",
+      "description": "安全日志审计服务",
+      "category": "security",
+      "mandatory": false,
+      "auto_provision": true,
+      "specs": [
+        {
+          "spec_name": "license_10",
+          "display": "10日志源",
+          "max_log_sources": 10
+        },
+        {
+          "spec_name": "license_20",
+          "display": "20日志源",
+          "max_log_sources": 20
+        },
+        {
+          "spec_name": "license50_",
+          "display": "50日志源",
+          "max_log_sources": 50
+        }
+      ]
+    },
+    "database_audit": {
+      "name": "数据库审计",
+      "description": "数据库审计服务",
+      "category": "security",
+      "mandatory": false,
+      "auto_provision": true,
+      "specs": [
+        {
+          "spec_name": "license_1",
+          "display": "1数据库实例",
+          "max_db_instances": 1
+        },
+        {
+          "spec_name": "license_2",
+          "display": "2数据库实例",
+          "max_db_instances": 2
+        },
+        {
+          "spec_name": "license_4",
+          "display": "4数据库实例",
+          "max_db_instances": 4
+        }
+      ]
+    },
     "firewall": {
       "name": "出口防火墙",
       "description": "带宽选项：10M/20M/50M/100M/200M",
@@ -233,6 +282,81 @@
       ]
     }
   },
+  "security_levels": {
+    "description": "信息安全等级保护级别配置(1-5级)",
+    "levels": [
+      {
+        "level": 1,
+        "name": "用户自主保护级",
+        "requirements": {
+          "bastion_host": "optional",
+          "host_security": "optional",
+          "firewall": "optional",
+          "waf": "optional",
+          "log_audit": "optional",
+          "database_audit": "optional"
+        }
+      },
+      {
+        "level": 2,
+        "name": "系统审计保护级",
+        "requirements": {
+          "bastion_host": "required",
+          "host_security": "required",
+          "firewall": "required",
+          "waf": "optional",
+          "log_audit": "required",
+          "database_audit": "optional"
+        }
+      },
+      {
+        "level": 3,
+        "name": "安全标记保护级",
+        "requirements": {
+          "bastion_host": "required",
+          "host_security": "required",
+          "firewall": "required",
+          "waf": "required",
+          "log_audit": "required",
+          "database_audit": "required"
+        }
+      },
+      {
+        "level": 4,
+        "name": "结构化保护级",
+        "requirements": {
+          "bastion_host": "required",
+          "host_security": "required",
+          "firewall": "required",
+          "waf": "required",
+          "log_audit": "required",
+          "database_audit": "required",
+          "additional": {
+            "network_segregation": true,
+            "redundant_backup": true
+          }
+        }
+      },
+      {
+        "level": 5,
+        "name": "访问验证保护级",
+        "requirements": {
+          "bastion_host": "required",
+          "host_security": "required",
+          "firewall": "required",
+          "waf": "required",
+          "log_audit": "required",
+          "database_audit": "required",
+          "additional": {
+            "network_segregation": true,
+            "redundant_backup": true,
+            "multi_factor_auth": true,
+            "physical_security": true
+          }
+        }
+      }
+    ]
+  },  
   "environment_config": {
     "storage_type": "HDD高速云盘",
     "datacenter": "统一机房，无地域区分",
@@ -244,7 +368,7 @@
     "计算ECS总数量（等于所有服务器数量之和）",
     "确定存储需求（系统盘、数据盘），计算所有ECS对应的系统盘总容量、计算数据盘总容量",
     "识别网络服务需求（SLB、EIP、带宽等）",
-    "识别安全服务需求（堡垒机、主机安全、防火墙、WAF等）",
+    "按照应用系统的等保等级识别安全服务需求（堡垒机、主机安全、防火墙、WAF、日志审计、数据库审计等）",
     "生成完整的服务清单"
   ]
 }
