@@ -30,6 +30,10 @@
         <button id="openSettings" class="icon-btn settings-btn" title="API 配置">
           <i class="fa-solid fa-gear"></i>
         </button>
+        <button id="openRules" class="icon-btn" title="规则清单">
+          <i class="fa-solid fa-list-check"></i>
+          <span style="margin-left:6px; font-weight:600;">规则清单</span>
+        </button>
       </div>
     </header>
 
@@ -164,6 +168,49 @@
         </div>
         <div class="modal-footer">
           <button id="saveSettings" class="btn primary"><i class="fa-solid fa-floppy-disk"></i> 保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 动态规则配置弹窗 -->
+    <div id="rulesModal" class="modal hidden">
+      <div class="modal-backdrop" data-close="1"></div>
+      <div class="modal-dialog max-w-5xl">
+        <div class="modal-header">
+          <h3>动态规则</h3>
+          <button id="closeRules" class="icon-btn" aria-label="关闭">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            <div class="flex gap-2">
+              <button id="rulesTableBtn" class="btn chip active"><i class="fa-solid fa-table"></i> 表格视图</button>
+              <button id="rulesJsonBtn" class="btn chip"><i class="fa-solid fa-code"></i> JSON 文本</button>
+            </div>
+            <div id="rulesFilterWrap" class="flex items-center gap-2 ml-auto">
+              <label for="rulesServiceFilter" class="field-label" style="margin:0">云服务</label>
+              <select id="rulesServiceFilter" class="input" style="width:auto;min-width:200px"></select>
+            </div>
+          </div>
+          <div id="rulesTableSection" class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>服务名称</th>
+                  <th>分类</th>
+                  <th>规格名称</th>
+                </tr>
+              </thead>
+              <tbody id="rulesTableBody"></tbody>
+            </table>
+          </div>
+          <div id="rulesJsonSection" class="hidden">
+            <pre id="rulesJsonText" class="text-[12px] leading-5 bg-slate-50 border border-slate-200 rounded-md p-3 whitespace-pre overflow-auto max-h-[60vh]"></pre>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <span class="muted">来源：dynamic_rules.json</span>
         </div>
       </div>
     </div>

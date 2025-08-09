@@ -184,6 +184,19 @@ const elements = {
   settingsModal: document.getElementById('settingsModal'),
   closeSettings: document.getElementById('closeSettings'),
   saveSettings: document.getElementById('saveSettings'),
+  // 动态规则弹窗相关
+  openRules: document.getElementById('openRules'),
+  rulesModal: document.getElementById('rulesModal'),
+  closeRules: document.getElementById('closeRules'),
+  rulesTableBtn: document.getElementById('rulesTableBtn'),
+  rulesJsonBtn: document.getElementById('rulesJsonBtn'),
+  rulesTableSection: document.getElementById('rulesTableSection'),
+  rulesJsonSection: document.getElementById('rulesJsonSection'),
+  rulesTableBody: document.getElementById('rulesTableBody'),
+  rulesJsonText: document.getElementById('rulesJsonText'),
+  rulesServiceFilter: document.getElementById('rulesServiceFilter'),
+  rulesFilterWrap: document.getElementById('rulesFilterWrap'),
+  // Inputs & actions
   userRequirement: document.getElementById('userRequirement'),
   suggestionsContainer: document.getElementById('suggestionsContainer'),
   submitBtn: document.getElementById('submitBtn'),
@@ -208,6 +221,8 @@ const elements = {
 let appConfig = null;
 let currentConfigData = null;
 let currentCategory = 'all';
+let dynamicRules = null;
+let rulesCurrentService = 'all';
 
 // Boot
 window.addEventListener('DOMContentLoaded', async () => {
@@ -219,11 +234,109 @@ window.addEventListener('DOMContentLoaded', async () => {
     // 默认示例：预填问题并直接渲染示例结果
     if (elements.userRequirement) elements.userRequirement.value = `示例：${DEFAULT_EXAMPLE.question}`;
     displayResult(DEFAULT_EXAMPLE.outputs);
+    // 预加载动态规则（非阻塞）
+    preloadDynamicRules();
   } catch (error) {
     console.error('初始化失败:', error);
     showError('配置文件加载失败: ' + error.message);
   }
 });
+
+async function preloadDynamicRules() {
+  try {
+    dynamicRules = await fetchDynamicRules();
+  } catch (e) {
+    // 不弹toast，直到用户打开弹窗再提示
+    console.warn('预加载动态规则失败', e);
+  }
+}
+
+async function fetchDynamicRules() {
+  const resp = await fetch('./dynamic_rules.json', { cache: 'no-store' });
+  if (!resp.ok) throw new Error(`无法加载 dynamic_rules.json (HTTP ${resp.status})`);
+  return resp.json();
+}
+
+function populateRulesServiceFilter() {
+  const select = elements.rulesServiceFilter;
+  if (!select || !dynamicRules) return;
+  const serviceTypes = dynamicRules.service_types || {};
+  const options = ['<option value="all">全部</option>']
+    .concat(Object.keys(serviceTypes).map((k) => `<option value="${escapeHtml(k)}">${escapeHtml(serviceTypes[k]?.name || k)}</option>`));
+  select.innerHTML = options.join('');
+  select.value = rulesCurrentService || 'all';
+}
+
+function renderRulesJsonView() {
+  if (!dynamicRules) return;
+  try {
+    elements.rulesJsonText.textContent = JSON.stringify(dynamicRules, null, 2);
+  } catch (_) {
+    elements.rulesJsonText.textContent = '[无法格式化 JSON]';
+  }
+}
+
+function renderRulesTableView() {
+  if (!dynamicRules) return;
+  const serviceTypes = dynamicRules.service_types || {};
+  const rows = [];
+  const serviceEntries = Object.entries(serviceTypes).filter(([key]) => rulesCurrentService === 'all' || key === rulesCurrentService);
+  for (const [serviceKey, service] of serviceEntries) {
+    const baseCols = {
+      name: service.name || serviceKey,
+      category: service.category || '',
+    };
+
+    if (Array.isArray(service.specs) && service.specs.length > 0) {
+      for (const spec of service.specs) {
+        rows.push({
+          ...baseCols,
+          specName: spec.display || '-',
+        });
+      }
+    } else if (Array.isArray(service.bandwidth_options)) {
+      const options = service.bandwidth_options.map((n) => `${n}M`).join('/');
+      rows.push({
+        ...baseCols,
+        specName: service.recommended ? `带宽（推荐）：${options}` : `带宽：${options}`,
+      });
+    } else if (service.default_size || service.max_size || service.increment || service.min_size) {
+      const parts = [];
+      if (service.default_size) parts.push(`默认${service.default_size}GB`);
+      if (service.min_size) parts.push(`最小${service.min_size}GB`);
+      if (service.max_size) parts.push(`最大${service.max_size}GB`);
+      if (service.increment) parts.push(`步长${service.increment}GB`);
+      if (service.max_per_server) parts.push(`每台最多${service.max_per_server}`);
+      rows.push({
+        ...baseCols,
+        specName: parts.join('，') || '-',
+      });
+    } else {
+      rows.push({ ...baseCols, specName: '-' });
+    }
+  }
+
+  elements.rulesTableBody.innerHTML = rows.map((r) => `
+    <tr>
+      <td>${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(getCategoryName(r.category))}</td>
+      <td>${escapeHtml(r.specName)}</td>
+    </tr>
+  `).join('');
+}
+
+function summarizeSpecParams(spec) {
+  const keys = Object.keys(spec).filter((k) => !['spec_name', 'display'].includes(k));
+  if (keys.length === 0) return '-';
+  const parts = [];
+  for (const key of keys) {
+    const val = spec[key];
+    if (typeof val === 'number' || typeof val === 'string') parts.push(`${key}: ${val}`);
+    else if (Array.isArray(val)) parts.push(`${key}: [${val.join(', ')}]`);
+    else if (val && typeof val === 'object') parts.push(`${key}: {...}`);
+  }
+  return parts.join('，');
+}
 
 // Config loader
 async function loadAppConfig() {
@@ -327,6 +440,35 @@ function initializeEventListeners() {
   elements.closeSettings?.addEventListener('click', () => elements.settingsModal?.classList.add('hidden'));
   elements.settingsModal?.addEventListener('click', (e) => { if (e.target?.getAttribute('data-close') === '1') elements.settingsModal?.classList.add('hidden'); });
   elements.saveSettings?.addEventListener('click', () => { saveConfig(); elements.settingsModal?.classList.add('hidden'); });
+
+  // 动态规则弹窗打开/关闭
+  elements.openRules?.addEventListener('click', async () => {
+    try {
+      if (!dynamicRules) dynamicRules = await fetchDynamicRules();
+      rulesCurrentService = 'all';
+      populateRulesServiceFilter();
+      switchRulesView('table');
+      renderRulesTableView();
+      renderRulesJsonView();
+      elements.rulesModal?.classList.remove('hidden');
+      // 禁止背景滚动
+      document.body.style.overflow = 'hidden';
+    } catch (e) {
+      showError(`加载动态规则失败：${e.message || e}`);
+    }
+  });
+  elements.closeRules?.addEventListener('click', () => { elements.rulesModal?.classList.add('hidden'); document.body.style.overflow = ''; });
+  elements.rulesModal?.addEventListener('click', (e) => { if (e.target?.getAttribute('data-close') === '1') { elements.rulesModal?.classList.add('hidden'); document.body.style.overflow = ''; } });
+
+  // 规则视图切换
+  elements.rulesTableBtn?.addEventListener('click', () => { switchRulesView('table'); renderRulesTableView(); });
+  elements.rulesJsonBtn?.addEventListener('click', () => { switchRulesView('json'); renderRulesJsonView(); });
+
+  // 服务筛选
+  elements.rulesServiceFilter?.addEventListener('change', (e) => {
+    rulesCurrentService = e.target.value || 'all';
+    renderRulesTableView();
+  });
 
   // Submit
   elements.submitBtn?.addEventListener('click', handleSubmit);
@@ -569,7 +711,7 @@ function displayConfigTable(items) {
       <td>${escapeHtml(item.spec_display_name)}</td>
       <td>${Number(item.quantity) || 0}</td>
       <td>${escapeHtml(item.properties_text || '')}</td>
-      <td>${escapeHtml(item.reason || '')}</td>
+      <td><span class="reason-text">${escapeHtml(item.reason || '')}</span></td>
       <td>${item.auto_added ? '是' : '否'}</td>
     </tr>
   `).join('');
@@ -592,7 +734,6 @@ function createConfigItemHTML(item) {
 
   return `
     <div class="config-item" data-category="${escapeHtml(item.category || '')}">
-      ${item.auto_added ? '<span class="auto-badge">自动添加</span>' : ''}
       <div class="head">
         <div class="service">
           <div class="icon ${iconBG}"><i class="${iconClass}"></i></div>
@@ -674,6 +815,21 @@ function exportToExcel() {
   XLSX.utils.book_append_sheet(wb, ws, '配置清单');
   const filename = `云服务配置清单-${currentConfigData.config_list.config_id || Date.now()}.xlsx`;
   XLSX.writeFile(wb, filename);
+}
+
+function switchRulesView(view) {
+  const toTable = view === 'table';
+  elements.rulesTableBtn?.classList.toggle('active', toTable);
+  elements.rulesJsonBtn?.classList.toggle('active', !toTable);
+  if (toTable) {
+    elements.rulesTableSection?.classList.remove('hidden');
+    elements.rulesJsonSection?.classList.add('hidden');
+    elements.rulesFilterWrap?.classList.remove('hidden');
+  } else {
+    elements.rulesTableSection?.classList.add('hidden');
+    elements.rulesJsonSection?.classList.remove('hidden');
+    elements.rulesFilterWrap?.classList.add('hidden');
+  }
 }
 
 // Utilities

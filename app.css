@@ -47,6 +47,8 @@ body {
 .brand-text h1 { margin: 0; font-size: 20px; font-weight: 700; }
 .brand-text p { margin: 2px 0 0; color: var(--text-muted); font-size: 12px; }
 .header-meta { color: var(--text-muted); font-size: 12px; display: inline-flex; align-items: center; gap: 8px; }
+/* Header meta responsive */
+.header-meta { flex-wrap: wrap; }
 .settings-btn { margin-left: 6px; }
 .dot { margin: 0 8px; color: #c2c8d0; }
 /* Auth status badge */
@@ -132,7 +134,7 @@ body {
 .config-item .service .icon.security { background: linear-gradient(180deg, #ff8a00, #ff6b00); }
 .config-item .qty { background: var(--surface); border: 1px solid var(--border); padding: 4px 8px; border-radius: 999px; font-weight: 600; }
 .config-item .spec { margin-top: 8px; display: grid; gap: 4px; color: var(--text-muted); }
-.config-item .reason { margin-top: 8px; font-size: var(--font-size-small); color: var(--text-muted); }
+.config-item .reason { margin-top: 8px; font-size: var(--font-size-small); color: #1f6feb; }
 
 /* Tables */
 .table-wrap { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
@@ -162,6 +164,12 @@ body {
 .modal-body { padding: 14px 16px; display: grid; gap: 12px; }
 .modal-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
 
+/* Rules modal (centered & scrollable) */
+#rulesModal { display: grid; place-items: center; }
+#rulesModal .modal-dialog { width: min(100% - 16px, 960px); height: 72vh; margin: 0; display: flex; flex-direction: column; }
+#rulesModal .modal-body { overflow: auto; flex: 1 1 auto; }
+#rulesModal .table-wrap { overflow: auto; }
+
 /* Single-column fallback */
 .panel-body > .card + .card { margin-top: 12px; }
 
@@ -173,4 +181,7 @@ body {
 @media (max-width: 640px) {
   .steps { grid-template-columns: 1fr 1fr; }
   .summary-grid { grid-template-columns: repeat(2, 1fr); }
+  /* Small screen table text */
+  .table th, .table td { font-size: 12px; padding: 9px 10px; }
+  #rulesModal #rulesServiceFilter { min-width: 140px; max-width: 100%; }
 } 
