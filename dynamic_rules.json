@@ -330,11 +330,7 @@
           "firewall": "required",
           "waf": "required",
           "log_audit": "required",
-          "database_audit": "required",
-          "additional": {
-            "network_segregation": true,
-            "redundant_backup": true
-          }
+          "database_audit": "required"
         }
       },
       {
@@ -346,13 +342,7 @@
           "firewall": "required",
           "waf": "required",
           "log_audit": "required",
-          "database_audit": "required",
-          "additional": {
-            "network_segregation": true,
-            "redundant_backup": true,
-            "multi_factor_auth": true,
-            "physical_security": true
-          }
+          "database_audit": "required"
         }
       }
     ]
