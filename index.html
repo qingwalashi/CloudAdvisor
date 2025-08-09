@@ -1,193 +1,184 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>云需求顾问 - 智能云服务配置助手</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>云需求顾问 - 云服务报价助手</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="app.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
-<body>
-    <div class="container">
-        <!-- 头部区域 -->
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-cloud"></i>
-                    <h1>云需求顾问</h1>
-                </div>
-                <p class="subtitle">智能的云服务配置助手系统，集成大模型能力，支持自然语言需求解析和自动配置清单生成</p>
-            </div>
-        </header>
-
-        <!-- 配置区域 -->
-        <section class="config-section">
-            <div class="config-card">
-                <h3><i class="fas fa-cog"></i> API 配置</h3>
-                <div class="config-status">
-                    <div class="status-item">
-                        <span class="status-label">API 端点:</span>
-                        <span id="apiEndpoint" class="status-value">加载中...</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">认证方式:</span>
-                        <span id="authType" class="status-value">加载中...</span>
-                    </div>
-                </div>
-                <div class="config-form">
-                    <div class="form-group">
-                        <label for="apiKey">API Key</label>
-                        <input type="password" id="apiKey" placeholder="请输入您的 API Key">
-                        <button type="button" id="toggleApiKey" class="toggle-btn">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    <div class="form-group">
-                        <label for="workflowId">工作流 ID (可选)</label>
-                        <input type="text" id="workflowId" placeholder="如果需要指定工作流 ID，请输入">
-                    </div>
-                    <div class="form-group" id="advancedOptions" style="display: none;">
-                        <label for="customBaseUrl">自定义 API 端点</label>
-                        <input type="text" id="customBaseUrl" placeholder="留空使用默认配置">
-                    </div>
-                    <button type="button" id="toggleAdvanced" class="advanced-toggle">
-                        <i class="fas fa-chevron-down"></i>
-                        <span>高级选项</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- 输入区域 -->
-        <section class="input-section">
-            <div class="input-card">
-                <h3><i class="fas fa-edit"></i> 需求输入</h3>
-                <div class="input-form">
-                    <div class="form-group">
-                        <label for="userRequirement">请描述您的云服务需求</label>
-                        <textarea 
-                            id="userRequirement" 
-                            placeholder="例如：2 个应用系统，共13台 8C16G 云服务器，配置系统盘 140G，数据盘 180G，分别配置 30M 出口带宽，给我配置清单"
-                            rows="4"
-                        ></textarea>
-                    </div>
-                    <div class="suggested-questions">
-                        <p>建议问题：</p>
-                        <div class="suggestions">
-                            <button class="suggestion-btn" data-text="我需要2台云服务器，4核8GB配置">我需要2台云服务器，4核8GB配置</button>
-                            <button class="suggestion-btn" data-text="搭建一个电商网站，需要高可用架构">搭建一个电商网站，需要高可用架构</button>
-                            <button class="suggestion-btn" data-text="开发环境需要MySQL数据库和应用服务器">开发环境需要MySQL数据库和应用服务器</button>
-                        </div>
-                    </div>
-                    <button id="submitBtn" class="submit-btn">
-                        <i class="fas fa-paper-plane"></i>
-                        <span>生成配置清单</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- 加载状态 -->
-        <div id="loadingState" class="loading-state hidden">
-            <div class="loading-spinner">
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>正在分析您的需求，请稍候...</p>
-            </div>
+<body class="bg-gradient-to-b from-slate-50 to-white min-h-screen">
+  <div class="app">
+    <header class="app-header">
+      <div class="brand">
+        <i class="fa-solid fa-cloud"></i>
+        <div class="brand-text">
+          <h1>云需求顾问</h1>
+          <p>智能云服务配置与清单生成</p>
         </div>
+      </div>
+      <div class="header-meta">
+        <span id="apiEndpoint" class="meta-item" title="API 端点">加载配置中...</span>
+        <span class="dot">•</span>
+        <span id="authType" class="meta-item" title="认证方式">...</span>
+        <span id="authStatus" class="auth-badge missing"><i class="fa-solid fa-circle-exclamation"></i> 缺失</span>
+        <button id="openSettings" class="icon-btn settings-btn" title="API 配置">
+          <i class="fa-solid fa-gear"></i>
+        </button>
+      </div>
+    </header>
 
-        <!-- 结果展示区域 -->
-        <section id="resultSection" class="result-section hidden">
-            <!-- 需求总结 -->
-            <div class="summary-card">
-                <h3><i class="fas fa-chart-line"></i> 需求分析总结</h3>
-                <div id="summaryContent" class="summary-content"></div>
+    <main class="app-main">
+      <!-- 输入卡片 -->
+      <section class="panel" id="section-config">
+        <div class="panel-body">
+          <div class="card !p-4 sm:!p-5 space-y-3">
+            <h3 class="card-title"><i class="fa-regular fa-rectangle-list"></i> 需求输入</h3>
+            <label class="field-label" for="userRequirement">请描述您的云服务需求</label>
+            <textarea id="userRequirement" class="textarea !min-h-[120px] !p-3" rows="5" placeholder="例如：2 个应用系统，共 13 台 8C16G 云服务器，配置系统盘 140G，数据盘 180G，分别配置 30M 出口带宽，给我配置清单"></textarea>
+            <div class="suggested-questions">
+              <div class="sugg-title">建议问题</div>
+              <div class="sugg-list" id="suggestionsContainer"></div>
             </div>
-
-            <!-- 配置清单 -->
-            <div class="config-list-card">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3><i class="fas fa-list-alt"></i> 详细配置清单</h3>
-                    <div class="view-toggle">
-                        <button id="cardViewBtn" class="view-btn active">
-                            <i class="fas fa-th-large"></i> 卡片视图
-                        </button>
-                        <button id="tableViewBtn" class="view-btn">
-                            <i class="fas fa-table"></i> 表格视图
-                        </button>
-                        <button id="exportExcelBtn" class="export-btn">
-                            <i class="fas fa-file-excel"></i> 导出Excel
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- 分类标签 -->
-                <div class="category-tabs">
-                    <button class="tab-btn active" data-category="all">全部</button>
-                    <button class="tab-btn" data-category="compute">
-                        <i class="fas fa-server"></i> 计算服务
-                    </button>
-                    <button class="tab-btn" data-category="storage">
-                        <i class="fas fa-database"></i> 存储服务
-                    </button>
-                    <button class="tab-btn" data-category="network">
-                        <i class="fas fa-network-wired"></i> 网络服务
-                    </button>
-                    <button class="tab-btn" data-category="security">
-                        <i class="fas fa-shield-alt"></i> 安全服务
-                    </button>
-                </div>
-                
-                <div class="config-header">
-                    <div class="config-info">
-                        <span id="configId" class="config-id"></span>
-                        <span id="configTime" class="config-time"></span>
-                    </div>
-                    <div class="config-summary">
-                        <span id="totalItems" class="total-items"></span>
-                    </div>
-                </div>
-
-                <!-- 配置项列表 -->
-                <div id="configItems" class="config-items"></div>
-                
-                <!-- 表格视图 -->
-                <div id="configTableContainer" class="config-table-container hidden">
-                    <table id="configTable" class="config-table">
-                        <thead>
-                            <tr>
-                                <th>服务类型</th>
-                                <th>服务名称</th>
-                                <th>规格</th>
-                                <th>数量</th>
-                                <th>属性</th>
-                                <th>说明</th>
-                                <th>自动添加</th>
-                            </tr>
-                        </thead>
-                        <tbody id="configTableBody">
-                            <!-- 表格内容将通过JavaScript动态生成 -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- 汇总信息 -->
-                <div id="configSummary" class="config-summary-section"></div>
-            </div>
-        </section>
-
-        <!-- 错误提示 -->
-        <div id="errorMessage" class="error-message hidden">
-            <div class="error-content">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span id="errorText"></span>
-                <button id="closeError" class="close-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
+            <button id="submitBtn" class="btn primary w-full !py-3">
+              <i class="fa-solid fa-paper-plane"></i>
+              生成配置清单
+            </button>
+          </div>
         </div>
+      </section>
+
+      <!-- 需求分析总结 -->
+      <section class="panel" id="section-summary">
+        <div class="panel-body">
+          <div class="card !p-4 sm:!p-5">
+            <h3 class="card-title"><i class="fa-regular fa-note-sticky"></i> 需求分析总结</h3>
+            <div id="summaryContent" class="summary-content whitespace-pre-line text-[14px] leading-7 bg-slate-50 border border-slate-200 rounded-md p-3"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 配置清单汇总（独立区域） -->
+      <section class="panel" id="section-config-summary">
+        <div class="panel-body">
+          <div class="card !p-4 sm:!p-5">
+            <h3 class="card-title"><i class="fa-solid fa-chart-pie"></i> 配置清单汇总</h3>
+            <div id="configSummaryPanel" class="summary-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 详细配置清单 -->
+      <section class="panel" id="section-result">
+        <div class="panel-body">
+          <div class="card !p-4 sm:!p-5">
+            <div class="card-header-row flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <h3 class="card-title m-0"><i class="fa-regular fa-clipboard"></i> 详细配置清单</h3>
+              <!-- 按钮两行布局：小屏自动换行，桌面同行靠右 -->
+              <div class="actions flex flex-wrap gap-2 sm:justify-end">
+                <div class="flex gap-2">
+                  <button id="cardViewBtn" class="btn chip active"><i class="fa-solid fa-grip"></i> 卡片视图</button>
+                  <button id="tableViewBtn" class="btn chip"><i class="fa-solid fa-table"></i> 表格视图</button>
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                  <button id="exportExcelBtn" class="btn chip w-full sm:w-auto"><i class="fa-regular fa-file-excel"></i> 导出 Excel</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="tabs">
+              <button class="tab-btn active" data-category="all">全部</button>
+              <button class="tab-btn" data-category="compute"><i class="fa-solid fa-server"></i> 计算</button>
+              <button class="tab-btn" data-category="storage"><i class="fa-solid fa-database"></i> 存储</button>
+              <button class="tab-btn" data-category="network"><i class="fa-solid fa-network-wired"></i> 网络</button>
+              <button class="tab-btn" data-category="security"><i class="fa-solid fa-shield-halved"></i> 安全</button>
+            </div>
+
+            <div class="config-head">
+              <div class="info-left">
+                <span id="configId" class="muted"></span>
+                <span class="dot">•</span>
+                <span id="configTime" class="muted"></span>
+              </div>
+              <div class="info-right">
+                <span id="totalItems" class="muted"></span>
+              </div>
+            </div>
+
+            <div id="configItems" class="config-items"></div>
+
+            <div id="configTableContainer" class="table-wrap hidden">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>服务类型</th>
+                    <th>服务名称</th>
+                    <th>规格</th>
+                    <th>数量</th>
+                    <th>属性</th>
+                    <th>说明</th>
+                    <th>自动添加</th>
+                  </tr>
+                </thead>
+                <tbody id="configTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 设置弹窗 -->
+    <div id="settingsModal" class="modal hidden">
+      <div class="modal-backdrop" data-close="1"></div>
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>API 配置</h3>
+          <button id="closeSettings" class="icon-btn" aria-label="关闭">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <label class="field-label" for="apiKey">API Key</label>
+            <div class="input-with-button">
+              <input type="password" id="apiKey" class="input" placeholder="请输入您的 API Key" />
+              <button id="toggleApiKey" class="icon-btn" title="显示/隐藏 API Key">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="field-label" for="workflowId">工作流 ID（可选）</label>
+            <input type="text" id="workflowId" class="input" placeholder="不填则使用默认工作流" />
+          </div>
+          <div class="form-row">
+            <label class="field-label" for="customBaseUrl">自定义 API 端点</label>
+            <input type="text" id="customBaseUrl" class="input" placeholder="留空则使用 config.json 的 baseUrl" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="saveSettings" class="btn primary"><i class="fa-solid fa-floppy-disk"></i> 保存</button>
+        </div>
+      </div>
     </div>
 
-    <script src="script.js"></script>
+    <div id="errorMessage" class="toast hidden">
+      <div class="toast-content">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <div id="errorText" class="toast-text"></div>
+        <button id="closeError" class="icon-btn" aria-label="关闭">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
 </body>
-</html>
+</html> 
