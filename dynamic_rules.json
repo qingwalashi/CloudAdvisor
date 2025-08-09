@@ -246,22 +246,6 @@
     "识别网络服务需求（SLB、EIP、带宽等）",
     "识别安全服务需求（堡垒机、主机安全、防火墙、WAF等）",
     "生成完整的服务清单"
-  ],
-  "validation_rules": {
-    "server_limits": {
-      "min_servers": 1,
-      "max_servers": 50
-    },
-    "bandwidth_limits": {
-      "min_bandwidth": 10,
-      "max_bandwidth": 200,
-      "default_bandwidth": 10
-    },
-    "storage_limits": {
-      "min_system_disk": 100,
-      "max_system_disk": 1000,
-      "min_data_disk": 50,
-      "max_data_disk": 2000
-    }
+  ]
   }
 }
